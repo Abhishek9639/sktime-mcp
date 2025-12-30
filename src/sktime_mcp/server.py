@@ -35,6 +35,7 @@ from sktime_mcp.tools.fit_predict import (
     predict_tool,
     list_datasets_tool,
 )
+from sktime_mcp.tools.codegen import export_code_tool
 from sktime_mcp.composition.validator import get_composition_validator
 
 # Configure logging to stderr with detailed format
@@ -206,6 +207,30 @@ async def list_tools() -> List[Tool]:
                 "required": ["query"],
             },
         ),
+        Tool(
+            name="export_code",
+            description="Export an estimator or pipeline as executable Python code",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "handle": {
+                        "type": "string",
+                        "description": "Handle ID of the estimator/pipeline to export",
+                    },
+                    "var_name": {
+                        "type": "string",
+                        "description": "Variable name to use in generated code (default: 'model')",
+                        "default": "model",
+                    },
+                    "include_fit_example": {
+                        "type": "boolean",
+                        "description": "Whether to include a fit/predict example (default: false)",
+                        "default": False,
+                    },
+                },
+                "required": ["handle"],
+            },
+        ),
     ]
 
 
@@ -254,6 +279,12 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
             result = search_estimators_tool(
                 arguments["query"],
                 arguments.get("limit", 20),
+            )
+        elif name == "export_code":
+            result = export_code_tool(
+                arguments["handle"],
+                arguments.get("var_name", "model"),
+                arguments.get("include_fit_example", False),
             )
         else:
             result = {"error": f"Unknown tool: {name}"}
