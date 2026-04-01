@@ -25,8 +25,8 @@ class JobStatus(Enum):
 class JobInfo:
     """Information about a background job."""
     job_id: str
-    job_type: str  # "fit", "fit_predict", "transform", etc.
-    estimator_handle: str
+    job_type: str  # "fit", "fit_predict", "data_loading", "transform", etc.
+    estimator_handle: str = ""
     status: JobStatus = JobStatus.PENDING
     created_at: datetime = field(default_factory=datetime.now)
     start_time: Optional[datetime] = None
@@ -45,6 +45,7 @@ class JobInfo:
     dataset_name: Optional[str] = None
     horizon: Optional[int] = None
     estimator_name: Optional[str] = None
+    data_handle: Optional[str] = None
     
     @property
     def progress_percentage(self) -> float:
@@ -111,6 +112,7 @@ class JobInfo:
             "estimated_time_remaining_human": self.estimated_time_remaining_human,
             "dataset_name": self.dataset_name,
             "horizon": self.horizon,
+            "data_handle": self.data_handle,
             "result": self.result,
             "errors": self.errors,
         }
@@ -130,11 +132,11 @@ class JobManager:
     def create_job(
         self,
         job_type: str,
-        estimator_handle: str,
+        estimator_handle: str = "",
         estimator_name: Optional[str] = None,
         dataset_name: Optional[str] = None,
         horizon: Optional[int] = None,
-        total_steps: int = 3,  # Default: load data, fit, predict
+        total_steps: int = 3,
     ) -> str:
         """
         Create a new job and return its ID.

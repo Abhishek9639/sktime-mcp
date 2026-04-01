@@ -56,6 +56,66 @@ def load_data_source_tool(config: Dict[str, Any]) -> Dict[str, Any]:
     return executor.load_data_source(config)
 
 
+def load_data_source_async_tool(config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Load data from any source in the background (non-blocking).
+    
+    This tool schedules the data loading as a background job and returns immediately
+    with a job_id. Use check_job_status to monitor progress.
+    
+    Args:
+        config: Data source configuration (same as load_data_source)
+    
+    Returns:
+        Dictionary with:
+        - success: bool
+        - job_id: Job ID for tracking progress
+        - message: Information about the job
+    
+    Example:
+        >>> load_data_source_async_tool({
+        ...     "type": "file",
+        ...     "path": "/path/to/large_data.csv",
+        ...     "time_column": "date",
+        ...     "target_column": "value"
+        ... })
+        {
+            "success": True,
+            "job_id": "abc-123-def-456",
+            "message": "Data loading started. Use check_job_status to monitor."
+        }
+    """
+    import asyncio
+    from sktime_mcp.runtime.jobs import get_job_manager
+    
+    executor = get_executor()
+    job_manager = get_job_manager()
+    
+    source_type = config.get("type", "unknown")
+    
+    job_id = job_manager.create_job(
+        job_type="data_loading",
+        total_steps=3,
+    )
+    
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        # No event loop in current thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    coro = executor.load_data_source_async(config, job_id)
+    asyncio.run_coroutine_threadsafe(coro, loop)
+    
+    return {
+        "success": True,
+        "job_id": job_id,
+        "message": f"Data loading started for '{source_type}'. Use check_job_status('{job_id}') to monitor.",
+        "source_type": source_type,
+    }
+
+
 def list_data_sources_tool() -> Dict[str, Any]:
     """
     List all available data source types.

@@ -4,6 +4,7 @@ Test background job management.
 
 import asyncio
 import time
+import pandas as pd
 from sktime_mcp.runtime.executor import get_executor
 from sktime_mcp.runtime.jobs import get_job_manager, JobStatus
 
@@ -204,6 +205,68 @@ def test_cleanup_old_jobs():
     assert job is None
 
 
+async def test_async_data_loading():
+    """Test async data loading."""
+    executor = get_executor()
+    job_manager = get_job_manager()
+
+    print("  Creating pandas data config...")
+
+    # Create a simple pandas data source config
+    config = {
+        "type": "pandas",
+        "data": {
+            "date": pd.date_range(
+                "2020-01-01", periods=24, freq="MS"
+            ).strftime("%Y-%m-%d").tolist(),
+            "value": list(range(100, 124)),
+        },
+        "time_column": "date",
+        "target_column": "value",
+    }
+
+    # Create job
+    job_id = job_manager.create_job(
+        job_type="data_loading",
+        total_steps=3,
+    )
+
+    print(f"  Created job: {job_id}")
+
+    # Run async load_data_source
+    result = await executor.load_data_source_async(config, job_id)
+
+    # Check result
+    assert result["success"], f"Failed: {result}"
+    assert "data_handle" in result
+
+    data_handle = result["data_handle"]
+    print(f"  Data handle: {data_handle}")
+
+    # Check job status
+    job = job_manager.get_job(job_id)
+    assert job.status == JobStatus.COMPLETED
+    assert job.data_handle == data_handle
+    assert job.result is not None
+    assert job.result["data_handle"] == data_handle
+
+    # Verify data handle is usable
+    handles_result = executor.list_data_handles()
+    handle_ids = [
+        h["handle"] for h in handles_result["handles"]
+    ]
+    assert data_handle in handle_ids
+
+    print("  ✓ Async data loading completed")
+    print(f"    Status: {job.status.value}")
+    print(f"    Progress: {job.progress_percentage}%")
+    print(f"    Data handle: {data_handle}")
+
+    # Cleanup
+    job_manager.delete_job(job_id)
+    executor.release_data_handle(data_handle)
+
+
 def run_all_tests():
     """Run all tests."""
     print("=" * 60)
@@ -227,7 +290,10 @@ def run_all_tests():
     
     print("\n6. Testing cleanup old jobs...")
     test_cleanup_old_jobs()
-    
+
+    print("\n7. Testing async data loading...")
+    asyncio.run(test_async_data_loading())
+
     print("\n" + "=" * 60)
     print("✅ All tests passed!")
     print("=" * 60)
