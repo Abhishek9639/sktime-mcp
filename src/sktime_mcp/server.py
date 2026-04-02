@@ -536,7 +536,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
         elif name == "load_data_source":
             result = load_data_source_tool(arguments["config"])
         elif name == "load_data_source_async":
-            result = load_data_source_async_tool(
+            result = await load_data_source_async_tool(
                 arguments["config"]
             )
         elif name == "list_data_sources":

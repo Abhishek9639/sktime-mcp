@@ -56,7 +56,7 @@ def load_data_source_tool(config: Dict[str, Any]) -> Dict[str, Any]:
     return executor.load_data_source(config)
 
 
-def load_data_source_async_tool(config: Dict[str, Any]) -> Dict[str, Any]:
+async def load_data_source_async_tool(config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Load data from any source in the background (non-blocking).
     
@@ -98,15 +98,7 @@ def load_data_source_async_tool(config: Dict[str, Any]) -> Dict[str, Any]:
         total_steps=3,
     )
     
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        # No event loop in current thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
-    coro = executor.load_data_source_async(config, job_id)
-    asyncio.run_coroutine_threadsafe(coro, loop)
+    asyncio.create_task(executor.load_data_source_async(config, job_id))
     
     return {
         "success": True,

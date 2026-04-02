@@ -4,6 +4,7 @@ Test background job management.
 
 import asyncio
 import time
+import pytest
 import pandas as pd
 from sktime_mcp.runtime.executor import get_executor
 from sktime_mcp.runtime.jobs import get_job_manager, JobStatus
@@ -205,6 +206,7 @@ def test_cleanup_old_jobs():
     assert job is None
 
 
+@pytest.mark.asyncio
 async def test_async_data_loading():
     """Test async data loading."""
     executor = get_executor()
