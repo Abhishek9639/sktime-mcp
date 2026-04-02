@@ -60,8 +60,8 @@ from sktime_mcp.composition.validator import get_composition_validator
 # Configure logging to stderr with detailed format
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -75,11 +75,10 @@ def sanitize_for_json(obj):
         return {str(k): sanitize_for_json(v) for k, v in obj.items()}
     elif isinstance(obj, (list, tuple)):
         return [sanitize_for_json(item) for item in obj]
-    elif hasattr(obj, '__dict__') and not isinstance(obj, (str, int, float, bool, type(None))):
+    elif hasattr(obj, "__dict__") and not isinstance(obj, (str, int, float, bool, type(None))):
         return str(obj)
     else:
         return obj
-
 
 
 @server.list_tools()
@@ -185,7 +184,11 @@ async def list_tools() -> List[Tool]:
         ),
         Tool(
             name="fit_predict_async",
-            description="Fit an estimator on a dataset and generate predictions (non-blocking background job)",
+            description=(
+                "Fit an estimator and generate predictions in the background "
+                "(non-blocking). Accepts either a demo dataset name or a "
+                "data_handle from load_data_source."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -195,7 +198,11 @@ async def list_tools() -> List[Tool]:
                     },
                     "dataset": {
                         "type": "string",
-                        "description": "Dataset name: airline, sunspots, lynx, etc.",
+                        "description": "Demo dataset name: airline, sunspots, lynx, etc.",
+                    },
+                    "data_handle": {
+                        "type": "string",
+                        "description": "Data handle from load_data_source (for custom data)",
                     },
                     "horizon": {
                         "type": "integer",
@@ -203,7 +210,7 @@ async def list_tools() -> List[Tool]:
                         "default": 12,
                     },
                 },
-                "required": ["estimator_handle", "dataset"],
+                "required": ["estimator_handle"],
             },
         ),
         Tool(
@@ -471,7 +478,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
     """Handle tool calls."""
     logger.info(f"=== Tool Call: {name} ===")
     logger.info(f"Arguments: {json.dumps(arguments, indent=2)}")
-    
+
     try:
         if name == "list_estimators":
             result = list_estimators_tool(
@@ -546,8 +553,9 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
         elif name == "fit_predict_async":
             result = fit_predict_async_tool(
                 arguments["estimator_handle"],
-                arguments["dataset"],
-                arguments.get("horizon", 12),
+                dataset=arguments.get("dataset"),
+                data_handle=arguments.get("data_handle"),
+                horizon=arguments.get("horizon", 12),
             )
         elif name == "check_job_status":
             result = check_job_status_tool(arguments["job_id"])
@@ -564,13 +572,13 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
             result = cleanup_old_jobs_tool(arguments.get("max_age_hours", 24))
         else:
             result = {"error": f"Unknown tool: {name}"}
-        
+
         logger.info(f"=== Result for {name} ===")
-        
+
         # Sanitize result for JSON serialization
         sanitized_result = sanitize_for_json(result)
         logger.info(f"{json.dumps(sanitized_result, indent=2, default=str)}")
-        
+
         return [TextContent(type="text", text=json.dumps(sanitized_result, indent=2, default=str))]
     except Exception as e:
         logger.exception(f"Error in tool {name}")
