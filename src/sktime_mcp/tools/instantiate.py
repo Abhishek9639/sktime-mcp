@@ -111,7 +111,12 @@ def instantiate_estimator_tool(
         params: Optional hyperparameters for the estimator
 
     Returns:
-        Dictionary with success, handle, estimator, params, and warnings.
+        Dictionary with:
+        - success: bool
+        - handle: Unique handle ID string
+        - estimator: Name of the estimator
+        - params: Parameters used
+        - warnings: List of any validation warnings
 
     Example:
         >>> instantiate_estimator_tool("ARIMA", {"order": [1, 1, 1]})
@@ -153,7 +158,13 @@ def instantiate_pipeline_tool(
         params_list: Optional list of parameter dicts for each component
 
     Returns:
-        Dictionary with success, handle, pipeline, components, and params_list.
+        Dictionary with:
+        - success: bool
+        - handle: Unique handle ID string
+        - pipeline: Name of the pipeline
+        - components: List of component names
+        - params_list: Parameters used for each component
+        - warnings: List of any validation warnings
 
     Example:
         >>> instantiate_pipeline_tool(
