@@ -48,9 +48,7 @@ def fit_predict_tool(
     if dataset and data_handle:
         return {
             "success": False,
-            "error": (
-                "Provide either 'dataset' or 'data_handle', not both."
-            ),
+            "error": ("Provide either 'dataset' or 'data_handle', not both."),
         }
 
     if not dataset and not data_handle:

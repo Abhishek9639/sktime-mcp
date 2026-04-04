@@ -90,38 +90,18 @@ def list_data_sources_tool() -> dict[str, Any]:
     }
 
 
-def fit_predict_with_data_tool(
-    estimator_handle: str,
-    data_handle: str,
-    horizon: int = 12,
-) -> dict[str, Any]:
+def list_data_handles_tool() -> dict[str, Any]:
     """
-    Fit and predict using custom data.
-
-    Deprecated -- use fit_predict(data_handle=...) instead.
-
-    Args:
-        estimator_handle: Handle from instantiate_estimator
-        data_handle: Handle from load_data_source
-        horizon: Forecast horizon (default: 12)
+    List all loaded data handles.
 
     Returns:
-        Dictionary with predictions
-
+        Dictionary with:
+        - success: bool
+        - count: int (number of loaded data handles)
+        - handles: list of data handle information
     """
     executor = get_executor()
-    result = executor.fit_predict_with_data(
-        estimator_handle,
-        data_handle,
-        horizon,
-    )
-
-    result["deprecation_notice"] = (
-        "fit_predict_with_data is deprecated. "
-        "Use fit_predict(data_handle=...) instead."
-    )
-
-    return result
+    return executor.list_data_handles()
 
 
 def release_data_handle_tool(data_handle: str) -> dict[str, Any]:

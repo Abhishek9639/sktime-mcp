@@ -17,6 +17,7 @@ from mcp.types import TextContent, Tool
 from sktime_mcp.composition.validator import get_composition_validator
 from sktime_mcp.tools.codegen import export_code_tool
 from sktime_mcp.tools.data_tools import (
+    list_data_handles_tool,
     list_data_sources_tool,
     load_data_source_async_tool,
     load_data_source_tool,
@@ -646,6 +647,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             result = load_data_source_async_tool(arguments["config"])
         elif name == "list_data_sources":
             result = list_data_sources_tool()
+        elif name == "list_data_handles":
+            result = list_data_handles_tool()
         elif name == "release_data_handle":
             result = release_data_handle_tool(arguments["data_handle"])
         elif name == "format_time_series":
