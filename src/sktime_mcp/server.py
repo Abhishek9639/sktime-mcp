@@ -158,7 +158,11 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="fit_predict",
-            description="Fit an estimator on a dataset and generate predictions",
+            description=(
+                "Fit an estimator and generate predictions. "
+                "Provide exactly ONE of 'dataset' (built-in demo name) "
+                "or 'data_handle' (from load_data_source)."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -168,7 +172,11 @@ async def list_tools() -> list[Tool]:
                     },
                     "dataset": {
                         "type": "string",
-                        "description": "Dataset name: airline, sunspots, lynx, etc.",
+                        "description": "Demo dataset name: airline, sunspots, lynx, etc.",
+                    },
+                    "data_handle": {
+                        "type": "string",
+                        "description": "Data handle from load_data_source (e.g. 'data_abc123')",
                     },
                     "horizon": {
                         "type": "integer",
@@ -176,7 +184,7 @@ async def list_tools() -> list[Tool]:
                         "default": 12,
                     },
                 },
-                "required": ["estimator_handle", "dataset"],
+                "required": ["estimator_handle"],
             },
         ),
         Tool(
@@ -341,10 +349,8 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="fit_predict_with_data",
             description=(
-                "Fit an estimator and generate predictions using custom data. GUIDELINES: "
-                "1. BEFORE calling this, check 'list_data_handles' or 'load_data_source' output. "
-                "2. If the metadata contains warnings about default target columns or column ambiguity, "
-                "STOP and re-load the data with explicit 'target_column' and 'time_column' mapping."
+                "(DEPRECATED -- use fit_predict with data_handle instead) "
+                "Fit an estimator and generate predictions using custom data."
             ),
             inputSchema={
                 "type": "object",
@@ -564,9 +570,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             )
         elif name == "fit_predict":
             result = fit_predict_tool(
-                arguments["estimator_handle"],
-                arguments["dataset"],
-                arguments.get("horizon", 12),
+                estimator_handle=arguments["estimator_handle"],
+                dataset=arguments.get("dataset"),
+                data_handle=arguments.get("data_handle"),
+                horizon=arguments.get("horizon", 12),
             )
             # Sanitize immediately to handle Period objects
             result = sanitize_for_json(result)
