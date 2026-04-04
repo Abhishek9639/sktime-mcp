@@ -181,7 +181,11 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="fit_predict_async",
-            description="Fit an estimator on a dataset and generate predictions (non-blocking background job)",
+            description=(
+                "Fit an estimator and generate predictions in the background. "
+                "Provide exactly ONE of 'dataset' (built-in demo name) "
+                "or 'data_handle' (from load_data_source)."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -191,7 +195,11 @@ async def list_tools() -> list[Tool]:
                     },
                     "dataset": {
                         "type": "string",
-                        "description": "Dataset name: airline, sunspots, lynx, etc.",
+                        "description": "Demo dataset name: airline, sunspots, lynx, etc.",
+                    },
+                    "data_handle": {
+                        "type": "string",
+                        "description": "Data handle from load_data_source (e.g. 'data_abc123')",
                     },
                     "horizon": {
                         "type": "integer",
@@ -199,7 +207,7 @@ async def list_tools() -> list[Tool]:
                         "default": 12,
                     },
                 },
-                "required": ["estimator_handle", "dataset"],
+                "required": ["estimator_handle"],
             },
         ),
         Tool(
@@ -616,9 +624,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             result = auto_format_on_load_tool(arguments["enabled"])
         elif name == "fit_predict_async":
             result = fit_predict_async_tool(
-                arguments["estimator_handle"],
-                arguments["dataset"],
-                arguments.get("horizon", 12),
+                estimator_handle=arguments["estimator_handle"],
+                dataset=arguments.get("dataset"),
+                data_handle=arguments.get("data_handle"),
+                horizon=arguments.get("horizon", 12),
             )
         elif name == "check_job_status":
             result = check_job_status_tool(arguments["job_id"])
