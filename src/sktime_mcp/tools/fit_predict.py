@@ -48,9 +48,7 @@ def fit_predict_tool(
     if dataset and data_handle:
         return {
             "success": False,
-            "error": (
-                "Provide either 'dataset' or 'data_handle', not both."
-            ),
+            "error": ("Provide either 'dataset' or 'data_handle', not both."),
         }
 
     if not dataset and not data_handle:
@@ -67,9 +65,7 @@ def fit_predict_tool(
     if dataset:
         return executor.fit_predict(estimator_handle, dataset, horizon)
 
-    return executor.fit_predict_with_data(
-        estimator_handle, data_handle, horizon
-    )
+    return executor.fit_predict_with_data(estimator_handle, data_handle, horizon)
 
 
 def fit_tool(
