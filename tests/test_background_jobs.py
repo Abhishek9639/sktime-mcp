@@ -147,7 +147,7 @@ async def test_async_fit_predict():
     print(f"✓ Created job: {job_id}")
 
     # Run async fit_predict
-    result = await executor.fit_predict_async(handle, "airline", 12, job_id)
+    result = await executor.fit_predict_async(handle, dataset="airline", horizon=12, job_id=job_id)
 
     # Check result
     assert result["success"]
