@@ -15,18 +15,21 @@ logger = logging.getLogger(__name__)
 
 def fit_predict_tool(
     estimator_handle: str,
-    dataset: str,
-    horizon: int = 12,
+    dataset: Optional[str] = None,
     data_handle: Optional[str] = None,
+    horizon: int = 12,
 ) -> dict[str, Any]:
     """
     Execute a complete fit-predict workflow.
 
+    Accepts either a demo dataset name or a data handle from
+    load_data_source -- exactly one must be provided.
+
     Args:
         estimator_handle: Handle from instantiate_estimator
         dataset: Name of demo dataset (e.g., "airline", "sunspots")
+        data_handle: Handle from load_data_source (e.g., "data_abc123")
         horizon: Forecast horizon (default: 12)
-        data_handle: Optional handle from load_data_source for custom data
 
     Returns:
         Dictionary with:
@@ -35,13 +38,30 @@ def fit_predict_tool(
         - horizon: Number of steps predicted
 
     Example:
-        >>> fit_predict_tool("est_abc123", "airline", horizon=12)
+        >>> fit_predict_tool("est_abc123", dataset="airline", horizon=12)
         {
             "success": True,
             "predictions": {1: 450.2, 2: 460.5, ...},
             "horizon": 12
         }
     """
+    if dataset and data_handle:
+        return {
+            "success": False,
+            "error": (
+                "Provide either 'dataset' or 'data_handle', not both."
+            ),
+        }
+
+    if not dataset and not data_handle:
+        return {
+            "success": False,
+            "error": (
+                "Either 'dataset' (e.g. 'airline') or "
+                "'data_handle' (from load_data_source) is required."
+            ),
+        }
+
     executor = get_executor()
     return executor.fit_predict(estimator_handle, dataset, horizon, data_handle=data_handle)
 

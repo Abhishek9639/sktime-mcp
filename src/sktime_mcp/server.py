@@ -17,7 +17,6 @@ from mcp.types import TextContent, Tool
 from sktime_mcp.composition.validator import get_composition_validator
 from sktime_mcp.tools.codegen import export_code_tool
 from sktime_mcp.tools.data_tools import (
-    fit_predict_with_data_tool,
     list_data_sources_tool,
     load_data_source_async_tool,
     load_data_source_tool,
@@ -203,7 +202,11 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="fit_predict",
-            description="Fit an estimator on a dataset and generate predictions. Accepts either a demo dataset name or a data_handle from load_data_source.",
+            description=(
+                "Fit an estimator and generate predictions. "
+                "Provide exactly ONE of 'dataset' (built-in demo name) "
+                "or 'data_handle' (from load_data_source)."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -213,7 +216,11 @@ async def list_tools() -> list[Tool]:
                     },
                     "dataset": {
                         "type": "string",
-                        "description": "Dataset name: airline, sunspots, lynx, etc.",
+                        "description": "Demo dataset name: airline, sunspots, lynx, etc.",
+                    },
+                    "data_handle": {
+                        "type": "string",
+                        "description": "Data handle from load_data_source (e.g. 'data_abc123')",
                     },
                     "data_handle": {
                         "type": "string",
@@ -396,34 +403,7 @@ async def list_tools() -> list[Tool]:
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-            name="fit_predict_with_data",
-            description=(
-                "Fit an estimator and generate predictions using custom data. GUIDELINES: "
-                "1. BEFORE calling this, check 'list_available_data' (with is_demo=false) or 'load_data_source' output. "
-                "2. If the metadata contains warnings about default target columns or column ambiguity, "
-                "STOP and re-load the data with explicit 'target_column' and 'time_column' mapping."
-            ),
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "estimator_handle": {
-                        "type": "string",
-                        "description": "Handle from instantiate_estimator",
-                    },
-                    "data_handle": {
-                        "type": "string",
-                        "description": "Handle from load_data_source",
-                    },
-                    "horizon": {
-                        "type": "integer",
-                        "description": "Forecast horizon (default: 12)",
-                        "default": 12,
-                    },
-                },
-                "required": ["estimator_handle", "data_handle"],
-            },
-        ),
-        Tool(
+
             name="release_data_handle",
             description="Release a data handle and free memory",
             inputSchema={
@@ -626,10 +606,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
         elif name == "fit_predict":
             result = fit_predict_tool(
-                arguments["estimator_handle"],
-                arguments.get("dataset", ""),
-                arguments.get("horizon", 12),
+                estimator_handle=arguments["estimator_handle"],
+                dataset=arguments.get("dataset"),
                 data_handle=arguments.get("data_handle"),
+                horizon=arguments.get("horizon", 12),
             )
             # Sanitize immediately to handle Period objects
             result = sanitize_for_json(result)
@@ -666,14 +646,6 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             result = load_data_source_async_tool(arguments["config"])
         elif name == "list_data_sources":
             result = list_data_sources_tool()
-        elif name == "fit_predict_with_data":
-            result = fit_predict_with_data_tool(
-                arguments["estimator_handle"],
-                arguments["data_handle"],
-                arguments.get("horizon", 12),
-            )
-            # Sanitize immediately to handle Period objects
-            result = sanitize_for_json(result)
         elif name == "release_data_handle":
             result = release_data_handle_tool(arguments["data_handle"])
         elif name == "format_time_series":
