@@ -4,6 +4,7 @@ Tests for the code generation tool (codegen.py).
 Covers Issue #69: [ENH] Add unit tests for export_code tool.
 """
 
+import contextlib
 import sys
 
 import pytest
@@ -80,42 +81,32 @@ class TestSingleEstimatorCodeGen:
 
     def test_generates_correct_import(self):
         """Should produce the right import path for NaiveForecaster."""
-        result = _generate_single_estimator_code(
-            "NaiveForecaster", {}
-        )
+        result = _generate_single_estimator_code("NaiveForecaster", {})
         assert result["success"]
         assert "from sktime" in result["code"]
         assert "import NaiveForecaster" in result["code"]
 
     def test_instantiation_with_params(self):
         """Params should appear in the generated code."""
-        result = _generate_single_estimator_code(
-            "NaiveForecaster", {"strategy": "last"}
-        )
+        result = _generate_single_estimator_code("NaiveForecaster", {"strategy": "last"})
         assert result["success"]
         assert 'strategy="last"' in result["code"]
 
     def test_instantiation_without_params(self):
         """Empty params should produce empty parentheses."""
-        result = _generate_single_estimator_code(
-            "NaiveForecaster", {}
-        )
+        result = _generate_single_estimator_code("NaiveForecaster", {})
         assert result["success"]
         assert "NaiveForecaster()" in result["code"]
 
     def test_custom_var_name(self):
         """Custom var_name should be used in the output."""
-        result = _generate_single_estimator_code(
-            "NaiveForecaster", {}, var_name="forecaster"
-        )
+        result = _generate_single_estimator_code("NaiveForecaster", {}, var_name="forecaster")
         assert result["success"]
         assert "forecaster = NaiveForecaster()" in result["code"]
 
     def test_unknown_estimator_fails(self):
         """Unknown estimator should return success=False."""
-        result = _generate_single_estimator_code(
-            "NotARealEstimator99999", {}
-        )
+        result = _generate_single_estimator_code("NotARealEstimator99999", {})
         assert not result["success"]
         assert "error" in result
 
@@ -183,10 +174,8 @@ class TestExportCodeTool:
         """Helper to release a handle."""
         from sktime_mcp.runtime.handles import get_handle_manager
 
-        try:
+        with contextlib.suppress(KeyError):
             get_handle_manager().release_handle(handle)
-        except KeyError:
-            pass
 
     def test_export_success(self):
         """Valid handle should return success with code."""
@@ -244,9 +233,7 @@ class TestExportCodeTool:
 
     def test_export_with_params(self):
         """Params should appear in exported code."""
-        handle = self._create_handle(
-            "NaiveForecaster", {"strategy": "mean"}
-        )
+        handle = self._create_handle("NaiveForecaster", {"strategy": "mean"})
         try:
             result = export_code_tool(handle)
             assert result["success"]
@@ -256,9 +243,7 @@ class TestExportCodeTool:
 
     def test_pipeline_handle(self):
         """Pipeline handle should return is_pipeline=True."""
-        result = instantiate_pipeline_tool(
-            ["Deseasonalizer", "NaiveForecaster"]
-        )
+        result = instantiate_pipeline_tool(["Deseasonalizer", "NaiveForecaster"])
         if not result["success"]:
             pytest.skip("Pipeline instantiation not available")
 
