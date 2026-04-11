@@ -27,6 +27,7 @@ from sktime_mcp.tools.describe_estimator import (
     describe_estimator_tool,
     search_estimators_tool,
 )
+from sktime_mcp.tools.evaluate import evaluate_estimator_tool
 from sktime_mcp.tools.fit_predict import (
     fit_predict_async_tool,
     fit_predict_tool,
@@ -55,7 +56,6 @@ from sktime_mcp.tools.list_estimators import (
     list_estimators_tool,
 )
 from sktime_mcp.tools.save_model import save_model_tool
-from sktime_mcp.tools.evaluate import evaluate_estimator_tool
 
 # Configure logging to stderr with detailed format
 logging.basicConfig(
@@ -222,10 +222,6 @@ async def list_tools() -> list[Tool]:
                     "data_handle": {
                         "type": "string",
                         "description": "Data handle from load_data_source (e.g. 'data_abc123')",
-                    },
-                    "data_handle": {
-                        "type": "string",
-                        "description": "Handle from load_data_source (use this instead of dataset for custom data)",
                     },
                     "horizon": {
                         "type": "integer",
@@ -404,7 +400,6 @@ async def list_tools() -> list[Tool]:
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-
             name="release_data_handle",
             description="Release a data handle and free memory",
             inputSchema={
