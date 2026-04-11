@@ -169,7 +169,6 @@ async def _async_test_async_fit_predict():
 
 def test_async_fit_predict():
     """Test async fit_predict natively."""
-    import asyncio
     asyncio.run(_async_test_async_fit_predict())
 
 
