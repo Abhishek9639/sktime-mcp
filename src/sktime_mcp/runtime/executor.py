@@ -266,6 +266,11 @@ class Executor:
             )
             await asyncio.sleep(0.01)  # Yield control to event loop
 
+            # Check if job was cancelled before proceeding
+            job = self._job_manager.get_job(job_id)
+            if job and job.status == JobStatus.CANCELLED:
+                return {"success": False, "error": "Job cancelled", "job_id": job_id}
+
             data_result = self.load_dataset(dataset)
             if not data_result["success"]:
                 self._job_manager.update_job(
@@ -284,6 +289,11 @@ class Executor:
                 job_id, completed_steps=1, current_step=f"Fitting {estimator_name} on {dataset}..."
             )
             await asyncio.sleep(0.01)  # Yield control
+
+            # Check if job was cancelled before proceeding
+            job = self._job_manager.get_job(job_id)
+            if job and job.status == JobStatus.CANCELLED:
+                return {"success": False, "error": "Job cancelled", "job_id": job_id}
 
             # Run fit in executor to avoid blocking
             loop = asyncio.get_event_loop()
@@ -306,6 +316,11 @@ class Executor:
                 current_step=f"Generating predictions (horizon={horizon})...",
             )
             await asyncio.sleep(0.01)  # Yield control
+
+            # Check if job was cancelled before proceeding
+            job = self._job_manager.get_job(job_id)
+            if job and job.status == JobStatus.CANCELLED:
+                return {"success": False, "error": "Job cancelled", "job_id": job_id}
 
             # Run predict in executor
             predict_result = await loop.run_in_executor(
@@ -611,6 +626,11 @@ class Executor:
             )
             await asyncio.sleep(0.01)
 
+            # Check if job was cancelled
+            job = self._job_manager.get_job(job_id)
+            if job and job.status == JobStatus.CANCELLED:
+                return {"success": False, "error": "Job cancelled", "job_id": job_id}
+
             from sktime_mcp.data import DataSourceRegistry
 
             loop = asyncio.get_event_loop()
@@ -622,6 +642,11 @@ class Executor:
                 job_id, completed_steps=1, current_step="Validating data..."
             )
             await asyncio.sleep(0.01)
+
+            # Check if job was cancelled
+            job = self._job_manager.get_job(job_id)
+            if job and job.status == JobStatus.CANCELLED:
+                return {"success": False, "error": "Job cancelled", "job_id": job_id}
 
             is_valid, validation_report = adapter.validate(data)
             if not is_valid:
@@ -639,6 +664,11 @@ class Executor:
                 job_id, completed_steps=2, current_step="Converting to sktime format..."
             )
             await asyncio.sleep(0.01)
+
+            # Check if job was cancelled
+            job = self._job_manager.get_job(job_id)
+            if job and job.status == JobStatus.CANCELLED:
+                return {"success": False, "error": "Job cancelled", "job_id": job_id}
 
             y, X = adapter.to_sktime_format(data)
 
