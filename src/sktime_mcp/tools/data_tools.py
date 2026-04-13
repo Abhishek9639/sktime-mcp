@@ -98,6 +98,11 @@ def fit_predict_with_data_tool(
     """
     Fit and predict using custom data.
 
+    .. deprecated::
+        Use ``fit_predict_tool(estimator_handle, dataset="", horizon=horizon,
+        data_handle=data_handle)`` instead. This function will be removed in a
+        future release.
+
     Args:
         estimator_handle: Handle from instantiate_estimator
         data_handle: Handle from load_data_source
@@ -113,11 +118,17 @@ def fit_predict_with_data_tool(
         ...     horizon=12
         ... )
     """
-    executor = get_executor()
-    return executor.fit_predict_with_data(
-        estimator_handle,
-        data_handle,
-        horizon,
+    logger.warning(
+        "fit_predict_with_data_tool is deprecated; "
+        "use fit_predict_tool(data_handle=...) instead."
+    )
+    from sktime_mcp.tools.fit_predict import fit_predict_tool
+
+    return fit_predict_tool(
+        estimator_handle=estimator_handle,
+        dataset="",
+        horizon=horizon,
+        data_handle=data_handle,
     )
 
 

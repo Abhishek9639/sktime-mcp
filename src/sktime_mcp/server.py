@@ -18,7 +18,6 @@ from mcp.types import TextContent, Tool
 from sktime_mcp.composition.validator import get_composition_validator
 from sktime_mcp.tools.codegen import export_code_tool
 from sktime_mcp.tools.data_tools import (
-    fit_predict_with_data_tool,
     load_data_source_async_tool,
     load_data_source_tool,
     release_data_handle_tool,
@@ -643,10 +642,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         elif name == "fit_predict_with_data":
             # Deprecated — kept for backward compatibility
             logger.warning("fit_predict_with_data is deprecated; use fit_predict(data_handle=...)")
-            result = fit_predict_with_data_tool(
-                arguments["estimator_handle"],
-                arguments["data_handle"],
-                arguments.get("horizon", 12),
+            result = fit_predict_tool(
+                estimator_handle=arguments["estimator_handle"],
+                dataset="",
+                horizon=arguments.get("horizon", 12),
+                data_handle=arguments["data_handle"],
             )
             result = sanitize_for_json(result)
 

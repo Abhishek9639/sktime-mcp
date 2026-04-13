@@ -831,6 +831,11 @@ class Executor:
         """
         Fit and predict using a data handle.
 
+        .. deprecated::
+            Use ``fit_predict(handle_id, dataset="", horizon=horizon,
+            data_handle=data_handle)`` instead. This method will be removed
+            in a future release.
+
         Args:
             estimator_handle: Estimator handle from instantiate_estimator
             data_handle: Data handle from load_data_source
@@ -839,25 +844,13 @@ class Executor:
         Returns:
             Dictionary with predictions
         """
-        if data_handle not in self._data_handles:
-            return {
-                "success": False,
-                "error": f"Unknown data handle: {data_handle}",
-                "available_handles": list(self._data_handles.keys()),
-            }
-
-        data = self._data_handles[data_handle]
-        y = data["y"]
-        X = data.get("X")
-
-        # Fit
-        fh = list(range(1, horizon + 1))
-        fit_result = self.fit(estimator_handle, y=y, X=X, fh=fh)
-        if not fit_result["success"]:
-            return fit_result
-
-        # Predict
-        return self.predict(estimator_handle, fh=fh, X=X)
+        logger.warning(
+            "Executor.fit_predict_with_data is deprecated; "
+            "use fit_predict(data_handle=...) instead."
+        )
+        return self.fit_predict(
+            estimator_handle, dataset="", horizon=horizon, data_handle=data_handle
+        )
 
     def list_data_handles(self) -> dict[str, Any]:
         """
