@@ -40,7 +40,10 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
-    "mkdocs>=1.5.0",
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "myst-parser>=2.0.0",
+    "sphinx-autodoc-typehints>=1.24.0",
 ]
 # Extended forecasting capabilities
 forecasting = [
@@ -129,6 +132,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["F401"] # ignore unused imports in tests
+"docs/**" = ["PTH"] # Sphinx conf uses traditional path helpers
 
 [tool.ruff.lint.isort]
 known-first-party = ["sktime_mcp"]
@@ -142,3 +146,4 @@ line-ending = "auto"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["src"]

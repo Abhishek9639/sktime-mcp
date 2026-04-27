@@ -192,6 +192,11 @@ class Executor:
         data_handle: Optional[str] = None,
     ) -> dict[str, Any]:
         """Convenience method: load data, fit, and predict."""
+        if data_handle is None and (not dataset or not str(dataset).strip()):
+            return {
+                "success": False,
+                "error": "Provide either dataset (demo name) or data_handle from load_data_source.",
+            }
         if data_handle is not None:
             # Use custom loaded data
             if data_handle not in self._data_handles:
@@ -855,43 +860,6 @@ class Executor:
             "metadata": self._data_handles[new_handle]["metadata"],
             "changes_made": changes_made,
         }
-
-    def fit_predict_with_data(
-        self,
-        estimator_handle: str,
-        data_handle: str,
-        horizon: int = 12,
-    ) -> dict[str, Any]:
-        """
-        Fit and predict using a data handle.
-
-        Args:
-            estimator_handle: Estimator handle from instantiate_estimator
-            data_handle: Data handle from load_data_source
-            horizon: Forecast horizon
-
-        Returns:
-            Dictionary with predictions
-        """
-        if data_handle not in self._data_handles:
-            return {
-                "success": False,
-                "error": f"Unknown data handle: {data_handle}",
-                "available_handles": list(self._data_handles.keys()),
-            }
-
-        data = self._data_handles[data_handle]
-        y = data["y"]
-        X = data.get("X")
-
-        # Fit
-        fh = list(range(1, horizon + 1))
-        fit_result = self.fit(estimator_handle, y=y, X=X, fh=fh)
-        if not fit_result["success"]:
-            return fit_result
-
-        # Predict
-        return self.predict(estimator_handle, fh=fh, X=X)
 
     def list_data_handles(self) -> dict[str, Any]:
         """

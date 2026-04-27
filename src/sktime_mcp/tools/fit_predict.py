@@ -41,6 +41,11 @@ def fit_predict_tool(
             "horizon": 12
         }
     """
+    if data_handle is None and (not dataset or not str(dataset).strip()):
+        return {
+            "success": False,
+            "error": "Provide either dataset (demo name) or data_handle from load_data_source.",
+        }
     executor = get_executor()
     return executor.fit_predict(estimator_handle, dataset, horizon, data_handle=data_handle)
 

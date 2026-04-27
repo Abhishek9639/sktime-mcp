@@ -11,5 +11,5 @@ python:
     - method: pip
       path: .
 
-mkdocs:
-  configuration: mkdocs.yml
+sphinx:
+  configuration: docs/source/conf.py
